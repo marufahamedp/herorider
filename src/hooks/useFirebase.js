@@ -14,17 +14,42 @@ const useFirebase = () => {
     const [token, setToken] = useState('');
 
     const auth = getAuth();
-    const googleProvider = new GoogleAuthProvider();
 
-    const registerUser = (email, password, name, navigate) => {
+    const registerUsera = (email, password, name, licenceimage, nidfrontimage, nidbackimage, profileimage, age, address, number, area, carname, carmodel, carpalate, vehicle, rider, navigate) => {
         setIsLoading(true);
         createUserWithEmailAndPassword(auth, email, password)
             .then((userCredential) => {
                 setAuthError('');
-                const newUser = { email, displayName: name };
+                const newUser = { email, displayName: name, licenceimage, nidfrontimage, nidbackimage, profileimage, age, address, number, area, carname, carmodel, carpalate, vehicle, rider };
                 setUser(newUser);
                 // save user to the database
-                saveUser(email, name, 'POST');
+                saveUser(email, name, licenceimage, nidfrontimage, nidbackimage, profileimage, age, address, number, area, carname, carmodel, carpalate, vehicle, rider, 'POST');
+                // send name to firebase after creation
+                updateProfile(auth.currentUser, {
+                    displayName: name
+                }).then(() => {
+                }).catch((error) => {
+                });
+                navigate('/profile');
+            })
+            .catch((error) => {
+                setAuthError(error.message);
+                console.log(error);
+            })
+            .finally(() => setIsLoading(false));
+    }
+
+
+    
+    const registerUserb = (email, password, name, licenceimage, nidfrontimage, nidbackimage, profileimage, age, address, number, area, carname, carmodel, carpalate, vehicle, rider, navigate) => {
+        setIsLoading(true);
+        createUserWithEmailAndPassword(auth, email, password)
+            .then((userCredential) => {
+                setAuthError('');
+                const newUser = { email, displayName: name, licenceimage, nidfrontimage, nidbackimage, profileimage, age, address, number, area, carname, carmodel, carpalate, vehicle, rider };
+                setUser(newUser);
+                // save user to the database
+                saveUser(email, name, licenceimage, nidfrontimage, nidbackimage, profileimage, age, address, number, area, carname, carmodel, carpalate, vehicle, rider, 'POST');
                 // send name to firebase after creation
                 updateProfile(auth.currentUser, {
                     displayName: name
@@ -40,13 +65,16 @@ const useFirebase = () => {
             .finally(() => setIsLoading(false));
     }
 
-    const loginUser = (email, password, location, navigate) => {
+
+
+    const loginUser = (email, password, location, handleClose, navigate) => {
         setIsLoading(true);
         signInWithEmailAndPassword(auth, email, password)
             .then((userCredential) => {
                 const destination = location?.state?.from || '/';
                 navigate(destination);
                 setAuthError('');
+                handleClose();
             })
             .catch((error) => {
                 setAuthError(error.message);
@@ -54,19 +82,7 @@ const useFirebase = () => {
             .finally(() => setIsLoading(false));
     }
 
-    const signInWithGoogle = (location, navigate) => {
-        setIsLoading(true);
-        signInWithPopup(auth, googleProvider)
-            .then((result) => {
-                const user = result.user;
-                saveUser(user.email, user.displayName, 'PUT');
-                setAuthError('');
-                const destination = location?.state?.from || '/';
-                navigate(destination);
-            }).catch((error) => {
-                setAuthError(error.message);
-            }).finally(() => setIsLoading(false));
-    }
+
 
     // observer user state
     useEffect(() => {
@@ -86,7 +102,7 @@ const useFirebase = () => {
     }, [auth])
 
     useEffect(() => {
-        fetch(`https://stark-caverns-04377.herokuapp.com/users/${user.email}`)
+        fetch(`https://aqueous-sea-83761.herokuapp.com/${user.email}`)
             .then(res => res.json())
             .then(data => setAdmin(data.admin))
     }, [user.email])
@@ -95,22 +111,35 @@ const useFirebase = () => {
         setIsLoading(true);
         signOut(auth).then(() => {
             // Sign-out successful.
+            window.location('/')
         }).catch((error) => {
             // An error happened.
         })
             .finally(() => setIsLoading(false));
     }
 
-    const saveUser = (email, displayName, method) => {
-        const user = { email, displayName };
-        fetch('https://stark-caverns-04377.herokuapp.com/users', {
+    const saveUser = (email, displayName, licenceimage, nidfrontimage, nidbackimage, profileimage, age, address, number, area, carname, carmodel, carpalate, vehicle, rider, method) => {
+        const formData = new FormData();
+        formData.append('name', displayName);
+        formData.append('email', email);
+        formData.append('licenceimage', licenceimage);
+        formData.append('age', age);
+        formData.append('address', address);
+        formData.append('number', number);
+        formData.append('nidfrontimage', nidfrontimage);
+        formData.append('nidbackimage', nidbackimage);
+        formData.append('profileimage', profileimage);
+        formData.append('area', area);
+        formData.append('carname', carname);
+        formData.append('carmodel', carmodel);
+        formData.append('carpalate', carpalate);
+        formData.append('vehicle', vehicle);
+        formData.append('usertype', rider);
+       
+        fetch('https://aqueous-sea-83761.herokuapp.com/users', {
             method: method,
-            headers: {
-                'content-type': 'application/json'
-            },
-            body: JSON.stringify(user)
+            body: formData
         })
-            .then()
     }
 
     return {
@@ -119,9 +148,9 @@ const useFirebase = () => {
         token,
         isLoading,
         authError,
-        registerUser,
+        registerUsera,
+        registerUserb,
         loginUser,
-        signInWithGoogle,
         logout,
     }
 }

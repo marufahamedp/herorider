@@ -1,11 +1,11 @@
-import React from 'react'
+import * as React from 'react';
 import Navbar from '../../Shared/Header/Navbar/Navbar';
-
+import CoursesDetails from '../CoursesDetails/CoursesDetails/CoursesDetails';
 function Home() {
     return (
         <div>
             <Navbar></Navbar>
-            <h1>this is home</h1>
+            <CoursesDetails></CoursesDetails>
         </div>
     )
 }
